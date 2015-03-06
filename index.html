@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<!-- define angular app -->
+<html ng-app="ufcApp">
+
+<head>
+  <!-- SCROLLS -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- SPELLS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.js"></script>
+  <script data-require="angular-animate@*" data-semver="1.2.13" src="http://code.angularjs.org/1.2.13/angular-animate.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/ng-websocket.js"></script>
+</head>
+
+<!-- define angular controller -->
+<body ng-controller="mainController">
+<div ></div>
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Angular Routing Example</a>
+    </div>
+
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><i class="fa fa-home"></i> Home</a></li>
+      <li><a href="#players"><i class="fa fa-shield"></i> players</a></li>
+      <li><a href="#rules"><i class="fa fa-exclamation-triangle"></i> Rules</a></li>
+      <li ng-click="clickLoad()"><i class="fa fa-shield"></i></li>
+    </ul>
+  </div>
+</nav>
+
+<div id="main">
+  <div ng-show="loading" class="fadein fadeout loader"><h1>LOADING</h1></div>
+{{message}}
+  <div ng-view></div>
+</div>
+<footer class="text-center">
+
+</footer>
+
+</body>
+
+</html>

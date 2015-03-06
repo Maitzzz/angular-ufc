@@ -1,0 +1,11 @@
+<div id="game-wrapper" class="row">
+  <div id="teams-wrapper" class="container">
+    <div class="col-md-5 col-md-offset-1 team {{ color }}" ng-repeat="(color, team) in teams">
+      <div class="player" ng-repeat="player in team">
+        <h3>{{player.count}}</h3>
+        <p class="player-name">{{ player.name }}</p>
+        <img class="player-image" src="{{ player.image }}"/>
+      </div>
+    </div>
+  </div>
+</div>

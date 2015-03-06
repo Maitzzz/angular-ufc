@@ -1,0 +1,15 @@
+httpd:
+  image: simpledrupalcloud/httpd:latest
+  hostname: httpd
+  ports:
+    - "80"
+    - "443"
+  volumes_from:
+    - httpdata
+  environment:
+    - VHOST=ufc-angular
+httpdata:
+  image: simpledrupalcloud/data:latest
+  hostname: httpdata
+  volumes:
+    - .:/httpd/data
