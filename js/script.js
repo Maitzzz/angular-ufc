@@ -3,8 +3,9 @@ var ufcApp = angular.module('ufcApp', ['ngRoute', 'ngAnimate','ngWebsocket']);
 var status1 = false;
 var timerData = '';
 var loadingStatus = true;
-var my_data = 'test';
+var my_data = 'my_data';
 var gameStatus = 'draw';
+var userData = {};
 // configure our routes
 ufcApp.config(function ($routeProvider) {
   $routeProvider
@@ -25,6 +26,11 @@ ufcApp.config(function ($routeProvider) {
       controller: 'playersController'
     })
 
+    .when('/user/:id', {
+      templateUrl: 'pages/user.html',
+      controller: 'userController'
+    })
+
     .when('/rules', {
       templateUrl: 'pages/rules.html',
       controller: 'rulesController'
@@ -36,6 +42,20 @@ ufcApp.config(function ($routeProvider) {
 
 ufcApp.controller('rulesController', function ($scope) {
   $scope.rules = 'Rules!!';
+});
+
+ufcApp.controller('userController', function ($scope, appData, $routeParams) {
+  var userID = $routeParams.id;
+
+  $scope.$watch(function () {
+    return appData.getData();
+  }, function (data, oldValue) {
+    if(data.userData) {
+        $scope.userdata = data.userData[userID];
+    }
+  });
+
+ // $scope.user = userData.userData[userID];
 });
 
 ufcApp.controller('playersController', function (appData, $location, $scope, $http) {
@@ -101,7 +121,7 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
 
   $scope.postPlayers = function () {
     var data = localStorage.getItem('playersIn');
-    var dataArray = JSON.parse(localStorage.getItem('playersIn'))
+    var dataArray = JSON.parse(localStorage.getItem('playersIn'));
     if (Array.isArray(dataArray) && dataArray.length > 3) {
       console.log(1);
       $http({
@@ -172,9 +192,11 @@ ufcApp.controller('mainController', function (appData, $location, $scope) {
   $scope.$watch(function () {
     return appData.getStatus();
   }, function (newValue, oldValue) {
-    if (newValue.type == 1) {
-      $scope.loading = true;
-      $scope.message = newValue;
+    if(newValue) {
+      if (newValue.type == 1) {
+        $scope.loading = true;
+        $scope.message = newValue;
+      }
     }
   });
 
@@ -204,9 +226,10 @@ ufcApp.controller('gameController', function ($scope, $location, appData) {
   $scope.$watch(function () {
     return appData.getData();
   }, function (newValue, oldValue) {
-    console.log(newValue)
-    if (newValue.status == controller) {
-      $scope.teams = newValue.teams;
+    console.log('test');
+    console.log(newValue);
+    if (newValue.gameData.status == controller) {
+      $scope.teams = newValue.gameData.teams;
     }
   });
 });
@@ -239,10 +262,10 @@ ufcApp.factory('appData', function () {
       return timerData;
     },
     setUsersData: function(data) {
-
+      userData = data;
     },
     getUsersData: function() {
-
+      return userData;
     }
   };
 });
@@ -271,13 +294,19 @@ ufcApp.run(function ($rootScope, $websocket, appData, $rootScope) {
       }
 
       if (message.type == 2) {
-        appData.setData(message.data);
+        console.log('setdata')
+        appData.setData(message);
+        $rootScope.$apply();
+
       }
 
       if(message.type == 3) {
         appData.setTimer(message.time);
         $rootScope.$apply();
+      }
 
+      if(message.type == 4) {
+        appData.setUsersData(message.data);
       }
     })
 
@@ -289,5 +318,3 @@ ufcApp.run(function ($rootScope, $websocket, appData, $rootScope) {
 function getStatus() {
   return 'game';
 }
-
-
