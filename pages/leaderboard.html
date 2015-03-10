@@ -1,0 +1,10 @@
+<div class="col-md-6 col-md-offset-3" id="leaderboard">
+  <div class="player-wrapper" ng-repeat="(uid,player) in leaderboard">
+    <div class="player {{ uid }}" >
+      <img ng-src="{{ player.image }}" alt="{{ player.name }}"/>
+      <div class="name"> Name : <a href="#user/{{ uid }}">{{ player.name }}</a></div>
+      <div class="score"> Score : {{ player.score }}</div>
+      <div class="position"> Position: {{ player.position }}</div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,7 @@
   <h1>Players</h1>
   <div class="player-wrapper col-md-2"  data-uid="{{ uid }}" ng-repeat="(uid,player) in players" ng-click="addPlayer(uid)">
     <div class="player {{ player.in }}" >
-      <img src="{{ player.imageurl }}"/>
+      <img ng-src="{{ player.imageurl }}"/>
       <p class="player-name"> {{ player.name }}</p>
     </div>
   </div>

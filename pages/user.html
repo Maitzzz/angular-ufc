@@ -1,1 +1,9 @@
-{{ userdata.name}}
+<div class="fadein col-md-6 col-md-offset-3 player-wrapper">
+  <div class="player">
+    <div class="name"> {{ userdata.name }}</div>
+    <img ng-src="{{ userdata.image }}" alt="{{ name }}"/>
+    <div class="totalgoals"> {{ userdata.data.totalgoals }}</div>
+    <div class="wins"> Wins: {{ userdata.data.wins }}</div>
+    <div class="defeats"> Defeats: {{ userdata.data.defeats }}</div>
+  </div>
+</div>

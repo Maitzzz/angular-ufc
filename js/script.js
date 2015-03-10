@@ -10,10 +10,14 @@ var userData = {};
 ufcApp.config(function ($routeProvider) {
   $routeProvider
 
-    // route for the home page
     .when('/game', {
       templateUrl: 'pages/game.html',
       controller: 'gameController'
+    })
+
+    .when('/leaderboard', {
+      templateUrl: 'pages/leaderboard.html',
+      controller: 'leaderboardController'
     })
 
     .when('/draw', {
@@ -39,9 +43,20 @@ ufcApp.config(function ($routeProvider) {
     .otherwise({redirectTo: '/players'})
 
 });
-
+// todo add players list separate from leaderboardd
 ufcApp.controller('rulesController', function ($scope) {
   $scope.rules = 'Rules!!';
+});
+
+ufcApp.controller('leaderboardController', function ($scope, appData) {
+  $scope.$watch(function () {
+    return appData.getData();
+  }, function (data, oldValue) {
+    if(data.leaderboard ) {
+      $scope.leaderboard = data.leaderboard;
+    }
+  });
+
 });
 
 ufcApp.controller('userController', function ($scope, appData, $routeParams) {
@@ -54,8 +69,6 @@ ufcApp.controller('userController', function ($scope, appData, $routeParams) {
         $scope.userdata = data.userData[userID];
     }
   });
-
- // $scope.user = userData.userData[userID];
 });
 
 ufcApp.controller('playersController', function (appData, $location, $scope, $http) {
@@ -151,7 +164,6 @@ ufcApp.controller('drawController', function (appData, $location, $scope) {
   var data = appData.getStatus();
 
   var time = appData.getTimer();
-  console.log(time + 'time');
 
   $scope.$watch(function () {
     return appData.getTimer();;
@@ -201,7 +213,6 @@ ufcApp.controller('mainController', function (appData, $location, $scope) {
   });
 
   $scope.clickLoad = function () {
-    console.log(timerData);
     $scope.loading = !$scope.loading;
   }
 });
@@ -226,9 +237,7 @@ ufcApp.controller('gameController', function ($scope, $location, appData) {
   $scope.$watch(function () {
     return appData.getData();
   }, function (newValue, oldValue) {
-    console.log('test');
-    console.log(newValue);
-    if (newValue.gameData.status == controller) {
+    if (newValue.status == controller) {
       $scope.teams = newValue.gameData.teams;
     }
   });
@@ -294,7 +303,6 @@ ufcApp.run(function ($rootScope, $websocket, appData, $rootScope) {
       }
 
       if (message.type == 2) {
-        console.log('setdata')
         appData.setData(message);
         $rootScope.$apply();
 

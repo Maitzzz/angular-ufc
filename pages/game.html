@@ -4,7 +4,7 @@
       <div class="player" ng-repeat="player in team">
         <h3>{{player.count}}</h3>
         <p class="player-name">{{ player.name }}</p>
-        <img class="player-image" src="{{ player.image }}"/>
+        <img class="player-image" ng-src="{{ player.image }}"/>
       </div>
     </div>
   </div>
