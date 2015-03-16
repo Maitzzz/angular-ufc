@@ -29,11 +29,14 @@
 
     <ul class="nav navbar-nav navbar-right">
       <li><a href="#"><i class="fa fa-home"></i> Home</a></li>
-      <li><a href="#players"><i class="fa fa-shield"></i> players</a></li>
+      <li ng-show="login"><a href="#login"><i class="fa fa-shield"></i> Log In!</a></li>
+      <li ng-show="logout" ng-click="logOut()"><a href="#"><i class="fa fa-shield"></i>Log Out</a></li>
       <li><a href="#rules"><i class="fa fa-exclamation-triangle"></i> Rules</a></li>
       <li><a href="#leaderboard"><i class="fa fa-exclamation-triangle"></i> Leaderboard</a></li>
       <li ng-click="clickLoad()"><i class="fa fa-shield"></i></li>
+      <li> {{ user }}</li>
     </ul>
+
   </div>
 </nav>
 

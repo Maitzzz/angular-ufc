@@ -1,11 +1,14 @@
 // create the module and name it scotchApp
 var ufcApp = angular.module('ufcApp', ['ngRoute', 'ngAnimate','ngWebsocket']);
+var nodeUrl = 'http://localhost:8081';
 var status1 = false;
 var timerData = '';
 var loadingStatus = true;
 var my_data = 'my_data';
 var gameStatus = 'draw';
 var userData = {};
+var drupalUrl = 'drupalurl';
+
 // configure our routes
 ufcApp.config(function ($routeProvider) {
   $routeProvider
@@ -18,6 +21,11 @@ ufcApp.config(function ($routeProvider) {
     .when('/leaderboard', {
       templateUrl: 'pages/leaderboard.html',
       controller: 'leaderboardController'
+    })
+
+    .when('/login', {
+      templateUrl: 'pages/login.html',
+      controller: 'loginController'
     })
 
     .when('/draw', {
@@ -44,11 +52,52 @@ ufcApp.config(function ($routeProvider) {
 
 });
 // todo add players list separate from leaderboardd
-ufcApp.controller('rulesController', function ($scope) {
+ufcApp.controller('rulesController', function ($scope,$location) {
+  if(!loggedIn()) {
+    $location.path('login');
+  }
+
   $scope.rules = 'Rules!!';
 });
 
+ufcApp.controller('loginController', function ($scope, $location, appData, $http) {
+  if(loggedIn()) {
+    $location.path(appData.getStatus());
+  }
+
+  $scope.logIn = function(user) {
+    $scope.loading = true;
+    console.log(user)
+    $http({
+      method: 'POST',
+      data: user,
+      url: nodeUrl + '/validate-user'
+    }).success(function (data, status) {
+      console.log(data + 'ststus');
+      if(data) {
+        var userData = {
+          uid: data,
+          email: user.email
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        $location.path(appData.getStatus())
+      } else {
+        $scope.loading = false;
+        $scope.message = 'Logimine ebaõnnestus';
+      }
+    }).error(function () {
+      $scope.loading = false;
+      $scope.message = 'Logimine ebaõnnestus';
+    });
+  }
+
+});
+
 ufcApp.controller('leaderboardController', function ($scope, appData) {
+  if(!loggedIn()) {
+    $location.path('login');
+  }
+
   $scope.$watch(function () {
     return appData.getData();
   }, function (data, oldValue) {
@@ -56,10 +105,12 @@ ufcApp.controller('leaderboardController', function ($scope, appData) {
       $scope.leaderboard = data.leaderboard;
     }
   });
-
 });
 
 ufcApp.controller('userController', function ($scope, appData, $routeParams) {
+  if(!loggedIn) {
+    $location.path('login');
+  }
   var userID = $routeParams.id;
 
   $scope.$watch(function () {
@@ -72,6 +123,10 @@ ufcApp.controller('userController', function ($scope, appData, $routeParams) {
 });
 
 ufcApp.controller('playersController', function (appData, $location, $scope, $http) {
+  if(!loggedIn()) {
+    $location.path('login');
+  }
+
   var controller = 'players';
   if (appData.getStatus() != controller) {
     $location.path(appData.getStatus());
@@ -157,16 +212,23 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
 
 });
 
-ufcApp.controller('drawController', function (appData, $location, $scope) {
-  var controller = 'draw';
-  $scope.timerLoader = false;
+ufcApp.controller('drawController', function (appData, $location, $scope, $http) {
+  if(!loggedIn()) {
+    console.log('fdsfasdfs');
+    $location.path('login');
+  }
 
+  var controller = 'draw';
+
+  $scope.registered = true;
+  $scope.imin = true;
+  $scope.imout = false;
+
+  $scope.timerLoader = false;
   var data = appData.getStatus();
 
-  var time = appData.getTimer();
-
   $scope.$watch(function () {
-    return appData.getTimer();;
+    return appData.getTimer();
   }, function (newValue, oldValue) {
      $scope.timeData = newValue;
 
@@ -191,10 +253,47 @@ ufcApp.controller('drawController', function (appData, $location, $scope) {
     }
   });
 
+  $scope.addPlayer = function() {
+    var user = localStorage.getItem('user');
+    console.log('user ' + user + ' added to list');
 
+    $http({
+      method: 'POST',
+      data: user,
+      url: nodeUrl + '/add-user'
+    }).success(function (data, status) {
+      localStorage.clear();
+    }).error(function () {
+      console.error('POST error')
+    });
+  };
+
+  $scope.removePlayer = function () {
+    var user = localStorage.getItem('user');
+    console.log('user ' + user + ' removed from list');
+
+    $http({
+      method: 'POST',
+      data: user,
+      url: apiUrl + '/add-user'
+    }).success(function (data, status) {
+      localStorage.clear();
+    }).error(function () {
+      console.error('POST error')
+    });
+  }
 });
 
-ufcApp.controller('mainController', function (appData, $location, $scope) {
+ufcApp.controller('mainController', function (appData, $location, $scope, $rootScope) {
+  $scope.logout = true;
+  $scope.login = false;
+  if(!loggedIn()) {
+    $location.path('login');
+    $scope.login = true;
+    $scope.logout = false;
+  }
+
+  $scope.user = JSON.parse(loggedIn()).email;
   var loadstate = appData.getLoading();
   $scope.$watch('loadstate',
     function (newValue, oldValue) {
@@ -213,12 +312,22 @@ ufcApp.controller('mainController', function (appData, $location, $scope) {
   });
 
   $scope.clickLoad = function () {
+    localStorage.removeItem('user');
     $scope.loading = !$scope.loading;
+  };
+
+  $scope.logOut = function () {
+    localStorage.removeItem('user');
+    $rootScope.$apply()
   }
 });
 
 ufcApp.controller('gameController', function ($scope, $location, appData) {
-  appData.setLoading(true)
+  if(!loggedIn()) {
+    $location.path('login');
+  }
+
+  appData.setLoading(true);
   var controller = 'game';
 
   if (appData.getStatus() != controller) {
@@ -279,7 +388,7 @@ ufcApp.factory('appData', function () {
   };
 });
 
-ufcApp.run(function ($rootScope, $websocket, appData, $rootScope) {
+ufcApp.run(function ($rootScope, $websocket, appData) {
   var ws = $websocket.$new('ws://192.168.1.67:8080')
     .$on('$open', function () {
       console.log('Connected');
@@ -326,3 +435,14 @@ ufcApp.run(function ($rootScope, $websocket, appData, $rootScope) {
 function getStatus() {
   return 'game';
 }
+
+function loggedIn() {
+  var user = localStorage.getItem('user');
+
+  if (user) {
+    return user;
+  }
+
+  return false;
+}
+

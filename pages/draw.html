@@ -1,6 +1,9 @@
 <div class="jumbotron text-center">
   <div ng-show="timerLoader"> <img src="../misc/719.GIF"/> </div>
   <h1>Time Left</h1>
+  <p class="im-in" ng-click="addPlayer()" ng-show="imin">I'M in!</p>
+  <p class="im-in" ng-click="removePlayer()" ng-show="imout">I'M out!</p>
 
   <p>{{ timeData }}</p>
+
 </div>
