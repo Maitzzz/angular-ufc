@@ -8,8 +8,9 @@ var my_data = 'my_data';
 var gameStatus = 'draw';
 var userData = {};
 var drupalUrl = 'drupalurl';
+var apiUrl = 'http://localhost:8081';
 
-// configure our routes
+
 ufcApp.config(function ($routeProvider) {
   $routeProvider
 
@@ -51,7 +52,6 @@ ufcApp.config(function ($routeProvider) {
     .otherwise({redirectTo: '/players'})
 
 });
-// todo add players list separate from leaderboardd
 ufcApp.controller('rulesController', function ($scope,$location) {
   if(!loggedIn()) {
     $location.path('login');
@@ -59,6 +59,10 @@ ufcApp.controller('rulesController', function ($scope,$location) {
 
   $scope.rules = 'Rules!!';
 });
+
+
+// configure our routes
+// todo add players list separate from leaderboardd
 
 ufcApp.controller('loginController', function ($scope, $location, appData, $http) {
   if(loggedIn()) {
@@ -195,7 +199,7 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
       $http({
         method: 'POST',
         data: data,
-        url: 'http://ufc8.mait.fenomen.ee/ufc_start_game'
+        url: drupalUrl + '/ufc_start_game'
       }).success(function (data, status) {
         localStorage.clear();
       }).error(function () {
@@ -210,19 +214,35 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
     getPlayers();
   };
 
+  $scope.start = function () {
+    $http({
+      method: 'POST',
+      url: apiUrl + '/start',
+      data: localStorage.getItem('user')
+    }).success(function (data, status) {
+      $location.path('game');
+      }).error(function () {
+      console.error('POST error')
+    });
+  }
+
 });
 
 ufcApp.controller('drawController', function (appData, $location, $scope, $http) {
   if(!loggedIn()) {
-    console.log('fdsfasdfs');
     $location.path('login');
   }
 
   var controller = 'draw';
 
   $scope.registered = true;
-  $scope.imin = true;
-  $scope.imout = false;
+  iAmIn(function(err, data) {
+    if(data) {
+      $scope.imin = true;
+    } else {
+      $scope.imout = false;
+    }
+  });
 
   $scope.timerLoader = false;
   var data = appData.getStatus();
@@ -262,7 +282,7 @@ ufcApp.controller('drawController', function (appData, $location, $scope, $http)
       data: user,
       url: nodeUrl + '/add-user'
     }).success(function (data, status) {
-      localStorage.clear();
+      $scope.$apply()
     }).error(function () {
       console.error('POST error')
     });
@@ -280,6 +300,17 @@ ufcApp.controller('drawController', function (appData, $location, $scope, $http)
       localStorage.clear();
     }).error(function () {
       console.error('POST error')
+    });
+  }
+
+  function iAmIn(inCallback) {
+    $http({
+      method: 'GET',
+      url: apiUrl + '/ufc_players'
+    }).success(function (data, status) {
+      inCallback(false, data);
+    }).error(function () {
+      inCallback(true, 'error');
     });
   }
 });
@@ -392,15 +423,7 @@ ufcApp.run(function ($rootScope, $websocket, appData) {
   var ws = $websocket.$new('ws://192.168.1.67:8080')
     .$on('$open', function () {
       console.log('Connected');
-      ws.$emit('getStatus');
-    })
-
-    .$on('pong', function (data) {
-      console.log('The websocket server has sent the following data:');
-      console.log(data);
-      console.log('Oh my gosh, websocket is really open! Fukken awesome!');
-
-      ws.$close();
+      ws.$emit('getData');
     })
 
     .$on('$message', function (message) {
@@ -445,4 +468,6 @@ function loggedIn() {
 
   return false;
 }
+
+
 
