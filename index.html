@@ -14,7 +14,8 @@
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.js"></script>
   <script data-require="angular-animate@*" data-semver="1.2.13" src="http://code.angularjs.org/1.2.13/angular-animate.js"></script>
-  <script src="js/script.js"></script>
+  <script src="js/controller.js"></script>
+  <script src="js/service.js"></script>
   <script src="js/ng-websocket.js"></script>
 </head>
 
@@ -32,6 +33,7 @@
       <li ng-show="login"><a href="#login"><i class="fa fa-shield"></i> Log In!</a></li>
       <li ng-show="logout" ng-click="logOut()"><a href="#"><i class="fa fa-shield"></i>Log Out</a></li>
       <li><a href="#rules"><i class="fa fa-exclamation-triangle"></i> Rules</a></li>
+      <li><a href="#test"><i class="fa fa-exclamation-triangle"></i> Test</a></li>
       <li><a href="#leaderboard"><i class="fa fa-exclamation-triangle"></i> Leaderboard</a></li>
       <li ng-click="clickLoad()"><i class="fa fa-shield"></i></li>
       <li> {{ user }}</li>
