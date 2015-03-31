@@ -1,11 +1,20 @@
 <div id="game-wrapper" class="row">
   <div id="teams-wrapper" class="container">
     <div class="col-md-5 col-md-offset-1 team {{ color }}" ng-repeat="(color, team) in teams">
-      <div class="player" ng-repeat="player in team">
+      <div class="player" ng-repeat="(id, player) in team">
         <h3>{{player.count}}</h3>
         <p class="player-name">{{ player.name }}</p>
-        <img class="player-image" ng-src="{{ player.image }}"/>
+        <div class="goals">
+          <div class="goal" ng-repeat="(key, goal) in player.goals">
+            <p><span>Round {{ key }}:</span> {{ goal }}</p>
+          </div>
+        </div>
+        <img class="player-image" ng-click="addGoal(id)" ng-src="{{ player.image }}"/>
       </div>
+      <button ng-click="winningTeam(color)"><i class="fa fa-thumbs-up"></i></button>
     </div>
+  </div>
+  <div class="footer continer">
+    <button class="remove-game col-md-4 col-md-offset-4" ng-click="removeGame(gid)"><i class="fa fa-times"></i> Remove Game! </button>
   </div>
 </div>

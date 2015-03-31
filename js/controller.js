@@ -8,7 +8,6 @@ var my_data = 'my_data';
 var gameStatus = 'draw';
 var userData = {};
 var drupalUrl = 'drupalurl';
-var apiUrl = 'http://localhost:8081';
 var userIn;
 
 
@@ -67,10 +66,9 @@ ufcApp.controller('rulesController', function ($scope,$location) {
 });
 
 
-// configure our routes
 // todo add players list separate from leaderboardd
 
-ufcApp.controller('loginController', function ($scope, $location, appData, $http, appService) {
+ufcApp.controller('loginController', function ($scope, $location, appData, appService) {
   if(loggedIn()) {
     $location.path(appData.getStatus());
   }
@@ -126,7 +124,7 @@ ufcApp.controller('userController', function ($scope, appData, $routeParams) {
   });
 });
 
-ufcApp.controller('playersController', function (appData, $location, $scope, $http,appService) {
+ufcApp.controller('playersController', function (appData, $location, $scope, appService) {
   if(!loggedIn()) {
     $location.path('login');
   }
@@ -170,28 +168,23 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
     getPlayers();
   };
 
-
-
   function getPlayers() {
-    console.log('getPlayers');
-    $http.defaults.headers.common['Authorization'] = 'Basic ' + 'YWRtaW46YWRtaW4=';
-    $http({
-      method: 'GET',
-      url: 'http://ufc8.mait.fenomen.ee/ufc_players'
-      //url: 'http://angular-node.mait.fenomen.ee/players.json'
+    var promiseGet = appService.getPlayers()
 
-    }).success(function (data, status) {
+    promiseGet.then(function (data) {
       var array = JSON.parse(localStorage.getItem('playersIn'));
-      for (var key in data) {
+      for (var key in data.data) {
         if ($.inArray(parseInt(key), array) != -1) {
-          data[key]['in'] = 'player-in';
+          data.data[key]['in'] = 'player-in';
         }
       }
-      $scope.players = data;
-    }).error(function () {
-      console.error('Error plaryr datas')
-    });
+      $scope.players = data.data;
+    }), function(error) {
+      $log.error('getPlayers()' ,error);
+    };
   }
+
+
   $scope.startTimer = function () {
     console.log('startTimer()');
     var promiseGet = appService.startTimer();
@@ -208,11 +201,11 @@ ufcApp.controller('playersController', function (appData, $location, $scope, $ht
     var dataArray = JSON.parse(localStorage.getItem('playersIn'));
     // If users are less than 3
     if (Array.isArray(dataArray) && dataArray.length > 3) {
-
+      $scope.loading = true;
       var promiseGet = appService.postPlayers(data);
 
       promiseGet.then(function (data) {
-
+        $scope.loading = false;
         //return from users post
       }), function (error) {
         $log.error('postPlayers()', error);
@@ -235,8 +228,14 @@ ufcApp.controller('drawController', function (appData, $location, $scope, appSer
     $location.path('login');
   }
 
-  var user = localStorage.getItem('user');
+  var data = appData.getStatus();
 
+  if (data != controller) {
+    $location.path(data);
+    return;
+  }
+
+  var user = localStorage.getItem('user');
   var promiseget = appService.iAmIn(user)
 
   promiseget.then(function (data) {
@@ -250,7 +249,6 @@ ufcApp.controller('drawController', function (appData, $location, $scope, appSer
   });
 
   $scope.timerLoader = false;
-  var data = appData.getStatus();
 
   $scope.$watch(function () {
     return appData.getTimer();
@@ -265,10 +263,6 @@ ufcApp.controller('drawController', function (appData, $location, $scope, appSer
     }
   });
 
-  if (data != controller) {
-    $location.path(data);
-    return;
-  }
 
   $scope.$watch(function () {
     return appData.getStatus();
@@ -294,9 +288,8 @@ ufcApp.controller('drawController', function (appData, $location, $scope, appSer
     console.log('user ' + user + ' removed from list');
 
     var promiseGet = appService.removeUser(user);
-
     promiseGet.then(function() {
-
+      //todo remove players
     }), function(error) {
       $log.error('removePlayer', error);
     };
@@ -341,7 +334,7 @@ ufcApp.controller('mainController', function (appData, $location, $scope, $rootS
   }
 });
 
-ufcApp.controller('gameController', function ($scope, $location, appData) {
+ufcApp.controller('gameController', function ($scope, $location, appData, appService) {
   if(!loggedIn()) {
     $location.path('login');
   }
@@ -367,8 +360,34 @@ ufcApp.controller('gameController', function ($scope, $location, appData) {
   }, function (newValue, oldValue) {
     if (newValue.status == controller) {
       $scope.teams = newValue.gameData.teams;
+      $scope.gid = newValue.gameData.game.id;
     }
   });
+
+  $scope.winningTeam = function (winningTeam) {
+    var promiseGet = appService.winningTeam(winningTeam);
+    promiseGet.then(function (data) {
+      // todo winning team data
+    });
+  };
+
+  $scope.addGoal = function(id) {
+    var promise = appService.addGoal(id);
+
+    promise.then(function (data) {
+      //todo addgoal data
+    });
+  };
+
+  $scope.removeGame = function (gid) {
+    var promise = appService.removeGame(gid);
+
+    promise.then(function(data) {
+      //todo remove game
+    }), function (error) {
+      $log.error('removeGame()', error);
+    };
+  }
 });
 
 ufcApp.factory('appData', function () {
@@ -415,7 +434,7 @@ ufcApp.run(function ($rootScope, $websocket, appData) {
     })
 
     .$on('$message', function (message) {
-      var message = message;
+
       if (message.type == 1) {
         status1 = message.status;
         appData.setStatus(status1);
@@ -438,7 +457,7 @@ ufcApp.run(function ($rootScope, $websocket, appData) {
     })
 
     .$on('$close', function () {
-      console.log('Cannot connect to websocket');
+      console.error('Cannot connect to websocket');
     });
 });
 
@@ -448,7 +467,6 @@ function getStatus() {
 
 function loggedIn() {
   var user = localStorage.getItem('user');
-
   if (user) {
     return user;
   }
